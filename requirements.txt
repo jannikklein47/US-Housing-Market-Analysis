@@ -4,3 +4,4 @@ sqlalchemy<2.0
 sqlalchemy-mate<2.0
 uszipcode
 tqdm
+requests

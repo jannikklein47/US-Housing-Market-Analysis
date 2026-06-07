@@ -1,32 +1,38 @@
 import pandas as pd
 import datetime
-import urllib.error
 import numpy as np
+import requests
+from io import StringIO
 from uszipcode import SearchEngine
 from tqdm import tqdm
 
 tqdm.pandas()
 
-def get_noaa_tornado_data(n_years: int = 5):
+def get_noaa_tornado_data(n_years: int = 15):
     """
     Downloads historical tornado data from the NOAA Storm Prediction Center
     and filters it for the last `n_years`.
     """
     current_year = datetime.datetime.now().year
-    
-    # The URL updates annually; try the last few years to find the most recent dataset
+
+    # Use requests (which uses certifi) so SSL works on macOS Python installs.
     df = None
     for year in range(current_year, 2020, -1):
         url = f"https://www.spc.noaa.gov/wcm/data/1950-{year}_actual_tornadoes.csv"
+        print(f"Trying to fetch data from: {url}")
         try:
-            print(f"Trying to fetch data from: {url}")
-            df = pd.read_csv(url)
-            print(f"Successfully loaded dataset up to {year}!")
-            latest_year_in_data = year
-            break
-        except (urllib.error.HTTPError, urllib.error.URLError, Exception):
+            resp = requests.get(url, timeout=30)
+        except requests.RequestException as e:
+            print(f"  Network error: {e}")
             continue
-            
+        if resp.status_code != 200:
+            print(f"  HTTP {resp.status_code}")
+            continue
+        df = pd.read_csv(StringIO(resp.text))
+        print(f"Successfully loaded dataset up to {year}!")
+        latest_year_in_data = year
+        break
+
     if df is None:
         raise RuntimeError("Could not fetch the tornado dataset from NOAA.")
         
@@ -96,17 +102,57 @@ def analyze_path_and_zips(df):
     valid_zips = zip_counts[zip_counts['ZIP_Code'] != 'Unknown']
     
     print(valid_zips.head(15).to_string(index=False))
-    
-    return df
+
+    return df, valid_zips
+
+# Maps NOAA SPC's terse column codes to human-readable names.
+# Loss/crop-loss units changed over time in NOAA's encoding; left as raw values.
+NOAA_COLUMN_RENAMES = {
+    "om": "tornado_id",
+    "yr": "year",
+    "mo": "month",
+    "dy": "day",
+    "date": "date",
+    "time": "time",
+    "tz": "time_zone",
+    "st": "state",
+    "stf": "state_fips",
+    "stn": "state_tornado_number",
+    "mag": "magnitude_ef_scale",
+    "inj": "injuries",
+    "fat": "fatalities",
+    "loss": "property_loss_raw",
+    "closs": "crop_loss_raw",
+    "slat": "start_lat",
+    "slon": "start_lon",
+    "elat": "end_lat",
+    "elon": "end_lon",
+    "len": "path_length_miles",
+    "wid": "path_width_yards",
+    "ns": "num_states_affected",
+    "sn": "state_segment_flag",
+    "sg": "track_segment_flag",
+    "f1": "county_fips_1",
+    "f2": "county_fips_2",
+    "f3": "county_fips_3",
+    "f4": "county_fips_4",
+    "fc": "magnitude_estimated_flag",
+    "edat": "end_date",
+    "etime": "end_time",
+}
 
 if __name__ == "__main__":
     # Example: Get data for the last 5 years to keep processing time reasonable
     recent_data = get_noaa_tornado_data(n_years=5)
-    
+
     # Process the paths
-    final_data = analyze_path_and_zips(recent_data)
-    
-    # Save the complete results to a local CSV for your own use
-    # You will now have an 'all_affected_zips' column with every ZIP the tornado crossed
+    final_data, zip_hit_counts = analyze_path_and_zips(recent_data)
+
+    # Per-tornado data: one row per tornado, with all_affected_zips as a comma-separated list
+    final_data = final_data.rename(columns=NOAA_COLUMN_RENAMES)
     final_data.to_csv("recent_tornado_paths_with_zips.csv", index=False)
-    print("\nFull path data saved to 'recent_tornado_paths_with_zips.csv'")
+    print("\nPer-tornado path data saved to 'recent_tornado_paths_with_zips.csv'")
+
+    # Per-ZIP data: one row per ZIP, with the count of tornadoes that crossed it
+    zip_hit_counts.to_csv("tornado_hits_per_zip.csv", index=False)
+    print(f"Per-ZIP hit counts ({len(zip_hit_counts)} ZIPs) saved to 'tornado_hits_per_zip.csv'")
