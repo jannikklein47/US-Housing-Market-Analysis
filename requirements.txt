@@ -1,2 +1,4 @@
 kagglehub
 pandas
+pip uninstall -y uszipcode sqlalchemy sqlalchemy-mate
+pip install "sqlalchemy<2.0" "sqlalchemy-mate<2.0" uszipcode
