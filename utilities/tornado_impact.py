@@ -5,6 +5,7 @@ import requests
 from io import StringIO
 from uszipcode import SearchEngine
 from tqdm import tqdm
+import os
 
 tqdm.pandas()
 
@@ -141,8 +142,8 @@ NOAA_COLUMN_RENAMES = {
     "etime": "end_time",
 }
 
-if __name__ == "__main__":
-    # Example: Get data for the last 5 years to keep processing time reasonable
+def generate_csv():
+    os.makedirs("data/intermediate", exist_ok=True)
     recent_data = get_noaa_tornado_data(n_years=5)
 
     # Process the paths
@@ -150,9 +151,12 @@ if __name__ == "__main__":
 
     # Per-tornado data: one row per tornado, with all_affected_zips as a comma-separated list
     final_data = final_data.rename(columns=NOAA_COLUMN_RENAMES)
-    final_data.to_csv("recent_tornado_paths_with_zips.csv", index=False)
+    final_data.to_csv("data/intermediate/recent_tornado_paths_with_zips.csv", index=False)
     print("\nPer-tornado path data saved to 'recent_tornado_paths_with_zips.csv'")
 
     # Per-ZIP data: one row per ZIP, with the count of tornadoes that crossed it
-    zip_hit_counts.to_csv("tornado_hits_per_zip.csv", index=False)
+    zip_hit_counts.to_csv("data/intermediate/tornado_hits_per_zip.csv", index=False)
     print(f"Per-ZIP hit counts ({len(zip_hit_counts)} ZIPs) saved to 'tornado_hits_per_zip.csv'")
+
+if __name__ == "__main__":
+    generate_csv()
