@@ -99,8 +99,8 @@ def analyze_path_and_zips(df):
     
     print("\n--- MOST AFFECTED ZIP CODES (INCLUDING ENTIRE PATH) ---")
     zip_counts = exploded_zips['single_zip'].value_counts().reset_index()
-    zip_counts.columns = ['ZIP_Code', 'Tornado_Hits']
-    valid_zips = zip_counts[zip_counts['ZIP_Code'] != 'Unknown']
+    zip_counts.columns = ['zip_code', 'tornado_amount']
+    valid_zips = zip_counts[zip_counts['zip_code'] != 'Unknown']
     
     print(valid_zips.head(15).to_string(index=False))
 
