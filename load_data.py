@@ -8,6 +8,7 @@ def load_data() -> str:
 
     if not any(initial_dir.iterdir()):
         kagglehub.dataset_download('ahmedshahriarsakib/usa-real-estate-dataset', output_dir='./data/initial/data.csv')
+        kagglehub.dataset_download('mathchi/violent-crime-rates-by-us-state', output_dir='./data/initial/crime.csv')
 
     path_obj = Path('./data/initial')
 
