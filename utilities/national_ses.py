@@ -15,13 +15,13 @@ NATIONAL_BENCHMARKS = {
 # If a metric is None/NaN, we substitute the national average. 
 # This prevents math errors and ensures downstream models don't crash.
 NATIONAL_IMPUTATION_VALUES = {
-    'median_household_income': 75000.0,
-    'median_home_value':       350000.0,
-    'college_attainment_rate': 38.0,
-    'housing_units':           1000.0,
-    'occupied_housing_units':  900.0,
-    'gini_index':              0.42,
-    'average_rent':            1500.0
+    'median_household_income': 83730.0,
+    'median_home_value':       412000.0,
+    'college_attainment_rate': 38.3,
+    'housing_units':           1000.0, # these housing values generate a 0.897 occupancy rate as average in the usa
+    'occupied_housing_units':  897.0, # these housing values generate a 0.897 occupancy rate as average in the usa
+    'gini_index':              0.49,
+    'average_rent':            1750.0
 }
 
 def create_national_ses_model(df_zips):
@@ -44,6 +44,10 @@ def create_national_ses_model(df_zips):
         else:
             # If an entire column is completely missing from the input, generate it safely
             df[col] = default_value
+    
+    if 'median_household_income' in df.columns:
+        # If the median household income is less than $10k, set it to the national median
+        df['median_household_income'] = df['median_household_income'].mask(df['median_household_income'] < 10000, NATIONAL_IMPUTATION_VALUES['median_household_income'])
             
     # 4. COMPUTE DERIVED METRICS (Guaranteed NaN-free now)
     df['occupancy_rate'] = df['occupied_housing_units'] / df['housing_units'].clip(lower=1)
@@ -72,8 +76,17 @@ def create_national_ses_model(df_zips):
     # Convert normalized dictionary to DataFrame and clip bounds tightly to [0.0, 1.0]
     df_norm = pd.DataFrame(norm_features).clip(lower=0.0, upper=1.0)
     
-    # 6. COMPUTE COMPOSITE SES SCORE
-    df['SES_Score'] = df_norm.mean(axis=1) * 100
+    # Reset indexes to correctly align
+    df = df.reset_index(drop=True)
+    df_norm = df_norm.reset_index(drop=True)
     
-    # Join the normalized breakdowns back to the primary dataframe
-    return df.join(df_norm)
+    # COMPUTE NATIONAL SES SCORE
+    df['SES_Score'] = df_norm.mean(axis=1) * 100
+
+    # CHECK FOR GLITCHED ROWS
+    glitched_rows = df[df['occupancy_rate'] > 1.0]
+    if not glitched_rows.empty:
+        print("\n--- Fehlerhafte Zeilen entdeckt! ---")
+        print(glitched_rows[['occupied_housing_units', 'housing_units', 'occupancy_rate']])
+    
+    return pd.concat([df, df_norm], axis=1)

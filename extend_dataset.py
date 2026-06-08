@@ -19,17 +19,24 @@ for z in unique_zip_codes:
 
 # Convert the dictionary to a DataFrame
 # Name the index axis 'zip_code' and reset it so it becomes a regular column
-demo_df = pd.DataFrame.from_dict(zip_lookup, orient='index').rename_axis('zip_code').reset_index()
+zip_code_df = pd.DataFrame.from_dict(zip_lookup, orient='index').rename_axis('zip_code').reset_index()
 
 print("Generating SES Model...")
-ses_model = create_national_ses_model(demo_df)
+ses_model = create_national_ses_model(zip_code_df)
 
-# Print the model for debugging
-print(ses_model[['zip_code', 'SES_Score', 'norm_log_median_income', 'norm_gini_index']].to_string(index=False))
+ses_model['zip_code'] = ses_model['zip_code'].astype('Int64')
+ses_model['population'] = ses_model['population'].astype('Int64')
+ses_model['population_density'] = ses_model['population_density'].astype('Int64')
+ses_model['housing_units'] = ses_model['housing_units'].astype('Int64')
+ses_model['occupied_housing_units'] = ses_model['occupied_housing_units'].astype('Int64')
+ses_model['median_home_value'] = ses_model['median_home_value'].astype('Int64')
+ses_model['median_household_income'] = ses_model['median_household_income'].astype('Int64')
+
+# Save the SES Model
+ses_model.to_csv("data/final/ses_model.csv", index=False)
 
 # Merge both dataframes, using 'zip_code' as a common key
 df = df.merge(ses_model, on='zip_code', how='left')
 
-# save
-ses_model.to_csv("data/final/data.csv", index=False)
-print("Fertig! Daten erfolgreich erweitert und gespeichert.")
+# Save the result
+df.to_csv("data/final/extended_dataset.csv", index=False)
