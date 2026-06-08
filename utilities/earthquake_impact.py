@@ -68,10 +68,10 @@ def fetch_zip_earthquake_data():
             continue
 
     # Convert the results into a structured Pandas DataFrame
-    df = pd.DataFrame(zip_counts.items(), columns=["Zip Code", "Amount of Earthquakes"])
+    df = pd.DataFrame(zip_counts.items(), columns=["zip_code", "earthquake_amount"])
     
     # Sort by the highest number of earthquakes first
-    df = df.sort_values(by="Amount of Earthquakes", ascending=False).reset_index(drop=True)
+    df = df.sort_values(by="earthquake_amount", ascending=False).reset_index(drop=True)
     
     # Save to CSV
     os.makedirs("data/intermediate", exist_ok=True)
