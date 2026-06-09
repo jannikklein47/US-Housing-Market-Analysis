@@ -3,8 +3,11 @@ import pandas as pd
 from load_data import get_initial_data_path
 from utilities.utils import get_zip_demographics
 from utilities.national_ses import create_national_ses_model
+from utilities.risk_index_model import calculate_disaster_risk_score
 from utilities.tornado_impact import generate_csv as generate_tornado_csv
 from utilities.earthquake_impact import fetch_zip_earthquake_data
+from utilities.flood_impact import generate_csv as generate_flood_csv
+from utilities.wildfire_impact import generate_csv as generate_wildfire_csv
 
 # 1. Read data
 df = pd.read_csv(get_initial_data_path()[1])
@@ -37,10 +40,17 @@ fetch_zip_earthquake_data()
 
 earthquake_df = pd.read_csv("data/intermediate/zip_code_earthquakes.csv")
 
-print("Merging datasets...")
-# Merge ses model, using 'zip_code' as a common key
-df = df.merge(ses_model, on='zip_code', how='left')
+generate_flood_csv()
+
+flood_df = pd.read_csv("data/intermediate/flood_claims_per_zip.csv")
+
+generate_wildfire_csv()
+
+wildfire_df = pd.read_csv("data/intermediate/wildfire_amount_per_zip.csv")
+
+risk_model = calculate_disaster_risk_score(tornado_df, earthquake_df, flood_df, wildfire_df)
+risk_model.to_csv("data/final/disaster_risk_model.csv", index=False)
 
 # Save the result
 print("Saving final dataset...")
-df.to_csv("data/final/extended_dataset.csv", index=False)
+#df.to_csv("data/final/extended_dataset.csv", index=False)

@@ -21,7 +21,7 @@ def add_zip_codes(df):
         return result[0].zipcode if result else None
 
     print("Mapping coordinates to ZIP codes...")
-    df["Zip_Code"] = df.progress_apply(lookup, axis=1)
+    df["zip_code"] = df.progress_apply(lookup, axis=1)
     return df
 
 def fetch_wildfire_data():
@@ -94,6 +94,30 @@ def fetch_wildfire_data():
     print(f"Successfully loaded {len(df)} wildfire records.")
     return df
 
+def generate_csv():
+    wildfire_df = fetch_wildfire_data()
+    wildfire_df = add_zip_codes(wildfire_df)
+    print("\nSample of Extracted Wildfire Data:")
+    print(wildfire_df.head())
+
+    output_dir = Path("data/intermediate")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    incidents_path = output_dir / "wildfire_incidents.csv"
+    wildfire_df.to_csv(incidents_path, index=False)
+    print(f"\nWrote {len(wildfire_df)} records to {incidents_path}")
+
+    hits_per_zip = (
+        wildfire_df.dropna(subset=["zip_code"])
+        .groupby("zip_code")
+        .size()
+        .reset_index(name="wildfire_amount")
+        .sort_values("wildfire_amount", ascending=False)
+    )
+    hits_path = output_dir / "wildfire_amount_per_zip.csv"
+    hits_per_zip.to_csv(hits_path, index=False)
+    print(f"Wrote {len(hits_per_zip)} ZIP counts to {hits_path}")
+
 if __name__ == "__main__":
     wildfire_df = fetch_wildfire_data()
     wildfire_df = add_zip_codes(wildfire_df)
@@ -108,12 +132,12 @@ if __name__ == "__main__":
     print(f"\nWrote {len(wildfire_df)} records to {incidents_path}")
 
     hits_per_zip = (
-        wildfire_df.dropna(subset=["Zip_Code"])
-        .groupby("Zip_Code")
+        wildfire_df.dropna(subset=["zip_code"])
+        .groupby("zip_code")
         .size()
-        .reset_index(name="Wildfire_Hits")
-        .sort_values("Wildfire_Hits", ascending=False)
+        .reset_index(name="wildfire_amount")
+        .sort_values("wildfire_amount", ascending=False)
     )
-    hits_path = output_dir / "wildfire_hits_per_zip.csv"
+    hits_path = output_dir / "wildfire_amount_per_zip.csv"
     hits_per_zip.to_csv(hits_path, index=False)
     print(f"Wrote {len(hits_per_zip)} ZIP counts to {hits_path}")
