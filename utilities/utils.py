@@ -13,6 +13,26 @@ COASTAL_STATES = {
     'CA', 'OR', 'WA', 'AK', 'HI' # Westküste & Inseln
 }
 
+# Die 50 offiziellen US-Bundesstaaten (volle Namen, wie sie in der 'state'-Spalte
+# des Housing-Datensatzes vorkommen). Damit lassen sich Nicht-Staaten wie
+# Puerto Rico, Guam, Virgin Islands, District of Columbia oder Dateneinträge
+# außerhalb der USA (z.B. "New Brunswick") herausfiltern.
+US_STATES = {
+    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
+    'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
+    'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
+    'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+    'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
+    'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
+    'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
+    'Wisconsin', 'Wyoming'
+}
+
+
+def filter_us_states(df, state_col='state'):
+    """Behält nur Zeilen, deren state_col einem der 50 US-Bundesstaaten entspricht."""
+    return df[df[state_col].isin(US_STATES)]
+
 def get_zip_weighted_score(zip_code):
     """
     Berechnet einen gewichteten Score basierend auf dem ZIP-Code.
