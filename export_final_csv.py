@@ -14,7 +14,7 @@ def export_final_csv():
     print("Disaster Risk dups:", disaster_risk['zip_code'].duplicated().any())
 
     final = houses.merge(disaster_risk[['zip_code', 'Risk_Score']], on='zip_code', how='left')
-    final = final.merge(ses[['zip_code', 'SES_Score', 'rent_to_income']], on='zip_code', how='left')
+    final = final.merge(ses[['zip_code', 'SES_Score', 'rent_to_income', 'occupancy_rate']], on='zip_code', how='left')
 
     final.to_csv("data/final/final_dataset.csv", index=False)
 
