@@ -4,7 +4,7 @@ from load_data import get_initial_data_path
 from utilities.utils import get_zip_demographics, filter_us_states
 from utilities.national_ses import create_national_ses_model
 from utilities.risk_index_model import calculate_disaster_risk_score
-from utilities.crime_index import calculate_crime_index
+from utilities.crime_index import fetch_crime_rates, calculate_crime_index
 from utilities.tornado_impact import generate_csv as generate_tornado_csv
 from utilities.earthquake_impact import fetch_zip_earthquake_data
 from utilities.flood_impact import generate_csv as generate_flood_csv
@@ -17,9 +17,9 @@ df = filter_us_states(df)
 os.makedirs("data/final", exist_ok=True)
 
 print("Generating Crime Model...")
-crime_raw = pd.read_csv("data/initial/crime.csv/US_violent_crime.csv")
 known_states = df['state'].dropna().unique().tolist()
-crime_model = calculate_crime_index(crime_raw, known_states)
+crime_rates = fetch_crime_rates(known_states)
+crime_model = calculate_crime_index(crime_rates)
 crime_model.to_csv("data/final/crime_model.csv", index=False)
 
 # Get all unique zip codes
