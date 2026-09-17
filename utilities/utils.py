@@ -33,6 +33,17 @@ def filter_us_states(df, state_col='state'):
     """Behält nur Zeilen, deren state_col einem der 50 US-Bundesstaaten entspricht."""
     return df[df[state_col].isin(US_STATES)]
 
+SQFT_TO_SQM = 0.09290304
+ACRE_TO_SQM = 4046.8564224
+
+def convert_imperial_to_metric(df, sqft_col='house_size', acre_col='acre_lot'):
+    """Ersetzt sqft- und acre-Spalten durch Quadratmeter-Äquivalente (house_size_sqm, lot_size_sqm)."""
+    df = df.copy()
+    df['house_size_sqm'] = df[sqft_col] * SQFT_TO_SQM
+    df['lot_size_sqm'] = df[acre_col] * ACRE_TO_SQM
+    df = df.drop(columns=[sqft_col, acre_col])
+    return df
+
 def get_zip_weighted_score(zip_code):
     """
     Berechnet einen gewichteten Score basierend auf dem ZIP-Code.

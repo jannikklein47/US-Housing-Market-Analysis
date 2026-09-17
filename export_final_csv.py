@@ -1,10 +1,11 @@
 import pandas as pd
 from load_data import get_initial_data_path
-from utilities.utils import filter_us_states
+from utilities.utils import filter_us_states, convert_imperial_to_metric
 
 def export_final_csv():
     houses = pd.read_csv(get_initial_data_path()[1])
     houses = filter_us_states(houses)
+    houses = convert_imperial_to_metric(houses)
     disaster_risk = pd.read_csv("data/final/disaster_risk_model.csv")
     disaster_risk = disaster_risk[~disaster_risk['zip_code'].str.contains('-', na=False)]
     disaster_risk["zip_code"] = disaster_risk["zip_code"].astype("float64")
