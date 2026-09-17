@@ -144,7 +144,7 @@ NOAA_COLUMN_RENAMES = {
 
 def generate_csv():
     os.makedirs("data/intermediate", exist_ok=True)
-    recent_data = get_noaa_tornado_data(n_years=5)
+    recent_data = get_noaa_tornado_data(n_years=20)
 
     # Process the paths
     final_data, zip_hit_counts = analyze_path_and_zips(recent_data)
