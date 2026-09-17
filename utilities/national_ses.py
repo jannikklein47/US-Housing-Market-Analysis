@@ -4,7 +4,6 @@ import pandas as pd
 # 1. DEFINE NATIONWIDE BENCHMARKS FOR MIN-MAX SCALING
 NATIONAL_BENCHMARKS = {
     'log_median_income':  {'min': np.log(10000),  'max': np.log(250000)}, 
-    'log_median_home':    {'min': np.log(30000),  'max': np.log(2000000)},
     'college_attainment': {'min': 0.0,            'max': 100.0},
     'occupancy_rate':     {'min': 0.30,           'max': 1.0},
     'gini_index':         {'min': 0.25,           'max': 0.65},
@@ -16,7 +15,6 @@ NATIONAL_BENCHMARKS = {
 # This prevents math errors and ensures downstream models don't crash.
 NATIONAL_IMPUTATION_VALUES = {
     'median_household_income': 83730.0,
-    'median_home_value':       412000.0,
     'college_attainment_rate': 38.3,
     'housing_units':           1000.0, # these housing values generate a 0.897 occupancy rate as average in the usa
     'occupied_housing_units':  897.0, # these housing values generate a 0.897 occupancy rate as average in the usa
@@ -61,7 +59,7 @@ def create_national_ses_model(df_zips):
     norm_features = {}
     
     # Positive Drivers (Higher = Better Socioeconomic Health)
-    pos_features = ['log_median_income', 'log_median_home', 'college_attainment_rate', 'occupancy_rate']
+    pos_features = ['log_median_income', 'college_attainment_rate', 'occupancy_rate']
     for feat in pos_features:
         b_key = 'college_attainment' if feat == 'college_attainment_rate' else feat
         b = NATIONAL_BENCHMARKS[b_key]

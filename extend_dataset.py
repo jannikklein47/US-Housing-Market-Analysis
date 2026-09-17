@@ -58,7 +58,3 @@ wildfire_df = pd.read_csv("data/intermediate/wildfire_amount_per_zip.csv")
 
 risk_model = calculate_disaster_risk_score(tornado_df, earthquake_df, flood_df, wildfire_df)
 risk_model.to_csv("data/final/disaster_risk_model.csv", index=False)
-
-# Save the result
-print("Saving final dataset...")
-#df.to_csv("data/final/extended_dataset.csv", index=False)
