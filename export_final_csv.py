@@ -68,7 +68,7 @@ def export_final_csv():
 
     # Now export with na_rep=""
     final.to_csv("output.csv", na_rep="", index=False)
-    final.to_csv("data/final/final_dataset_2.csv", na_rep="", index=False)
+    final.to_csv("data/final/final_dataset.csv", na_rep="", index=False)
 
     # print the amount of rows
     print(final.shape)
